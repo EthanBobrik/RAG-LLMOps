@@ -1,0 +1,23 @@
+# keep the build context (and image) small + free of secrets / local state
+.git
+.venv
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.DS_Store
+
+# secrets and local env
+.env
+.env.*
+!.env.example
+
+# runtime-generated state (uploads, indexes, logs, eval reports)
+data/
+faiss_index/
+logs/
+*.log
+eval/report*.json
+
+# dev-only assets not needed at runtime
+notebook/

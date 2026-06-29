@@ -1,0 +1,16 @@
+# Render Blueprint — deploy MultiDocChat as a free Docker web service.
+#
+# In Render: New → Blueprint → connect this repo → Apply, then set GROQ_API_KEY
+# when prompted (it's marked sync:false so the secret is never stored in the repo).
+services:
+  - type: web
+    name: multidocchat
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: LLM_PROVIDER
+        value: groq           # embeddings run locally (fastembed); only the LLM needs a key
+      - key: GROQ_API_KEY
+        sync: false           # set this in the Render dashboard, not in the repo

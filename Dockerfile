@@ -26,17 +26,20 @@ COPY requirements.txt ./
 # Install dependencies into the system interpreter using uv pip
 RUN uv pip install --system -r requirements.txt
 
+# Pre-fetch the local embedding + reranker models so the first user request is fast
+# (otherwise the first upload would block while ~150MB of onnx models download).
+RUN python -c "from fastembed import TextEmbedding; TextEmbedding(model_name='BAAI/bge-small-en-v1.5')" && \
+    python -c "from fastembed.rerank.cross_encoder import TextCrossEncoder; TextCrossEncoder(model_name='Xenova/ms-marco-MiniLM-L-6-v2')"
+
 # Copy project files
 COPY . .
 
-
-# Expose port
+# Informational; the platform routes to the port the app binds below.
 EXPOSE 8080
 
-# Run FastAPI with uvicorn (production: no --reload; scale with workers).
-# Note: the in-memory SESSIONS dict and on-disk FAISS index are per-process,
-# so multiple workers require shared/sticky session storage before scaling up.
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]
+# Bind to the platform-provided $PORT (Render/Railway/Fly), defaulting to 8080 locally.
+# sh -c so ${PORT} expands. Single worker — sessions + FAISS index are per-process.
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080} --workers 1"]
 
 # For local development with autoreload, override the CMD:
 #CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
