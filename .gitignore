@@ -28,7 +28,6 @@ main_archive/
 
 # Secrets & configs
 .env
-.env.*
 
 # Logs
 logs/
@@ -39,3 +38,5 @@ dist/
 build/
 multi_doc_chat.egg-info/
 flow.excalidraw
+CLAUDE.md
+.claude/
