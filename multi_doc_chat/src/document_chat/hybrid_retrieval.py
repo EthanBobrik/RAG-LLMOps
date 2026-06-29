@@ -108,7 +108,7 @@ def build_reranking_retriever(
     base_retriever: "BaseRetriever",
     *,
     top_n: int = 5,
-    model_name: str = "Xenova/ms-macro-MiniLM-L-6-v2",
+    model_name: str = "Xenova/ms-marco-MiniLM-L-6-v2",
 ) -> "BaseRetriever":
     """Wrap a retriever with a cross-encoder reranker. See docs/03, Phase 3."""
     from langchain_classic.retrievers import ContextualCompressionRetriever

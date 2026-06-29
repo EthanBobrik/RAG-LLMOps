@@ -30,6 +30,10 @@ class ConversationalRAG:
         try:
             self.session_id = session_id
 
+            # one model loader, reused for the LLM and embeddings (avoids re-reading
+            # .env/config separately for each)
+            self._model_loader = ModelLoader()
+
             # load llm and prompts once
             self.llm = self._load_llm()
             self.contextualize_prompt: ChatPromptTemplate = PROMPT_REGISTRY[
@@ -76,7 +80,7 @@ class ConversationalRAG:
             if not os.path.isdir(index_path):
                 raise FileNotFoundError(f"FAISS index directory not found: {index_path}")
             
-            embeddings = ModelLoader().load_embeddings()
+            embeddings = self._model_loader.load_embeddings()
             vectorstore = FAISS.load_local(
                 index_path, embeddings, index_name=index_name, allow_dangerous_deserialization=True
             )
@@ -96,7 +100,8 @@ class ConversationalRAG:
                     vectorstore, chunks,
                     k=hybrid_k,
                     fetch_k=hcfg.get("fetch_k", 20),
-                    dense_weight=hcfg.get("dense_weight", 0.5)
+                    dense_weight=hcfg.get("dense_weight", 0.5),
+                    sparse_weight=hcfg.get("sparse_weight", 0.5)
                 )
                 if rerank_on:
                     self.retriever = build_reranking_retriever(
@@ -161,8 +166,9 @@ class ConversationalRAG:
     def invoke_with_context(self, user_input: str, chat_history: Optional[List[BaseMessage]] = None) -> Dict[str, Any]:
         """Like invoke() but also return retrieved contexts: {"answer", "contexts"}.
 
-            Used by the eval harness — RAGAS faithfulness / context-precision need the
-            retrieved chunks, which the normal chain collapses into a string and discards."""
+        Used by the eval harness — the faithfulness / context-precision metrics need the
+        retrieved chunks, which the normal chain collapses into a string and discards.
+        """
         try:
             if self.retriever is None or self.chain is None:
                 raise DocumentPortalException(
@@ -216,7 +222,7 @@ class ConversationalRAG:
 
     def _load_llm(self):
         try:
-            llm = ModelLoader().load_llm()
+            llm = self._model_loader.load_llm()
             if not llm:
                 raise ValueError("LLM could not be loaded")
             log.info("LLM loaded successfully", session_id = self.session_id)

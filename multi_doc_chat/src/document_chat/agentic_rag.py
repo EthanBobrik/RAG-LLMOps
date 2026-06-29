@@ -162,6 +162,17 @@ class CorrectiveRAG:
             {"question": user_input, "original_question":user_input, "retry_count":0}
         )
         return final.get("generation","")
+
+    def invoke_with_context(self, user_input: str, chat_history: Optional[list] = None) -> dict:
+        """Run the graph and return {"answer", "contexts"} so the eval harness can score it."""
+        if self.graph is None:
+            raise RuntimeError("Call load_retriever_from_faiss() before invoke_with_context().")
+        final = self.graph.invoke(
+            {"question": user_input, "original_question": user_input, "retry_count": 0}
+        )
+        docs = final.get("documents", []) or []
+        return {"answer": final.get("generation", ""),
+                "contexts": [getattr(d, "page_content", str(d)) for d in docs]}
     
     async def astream_answer(self, user_input:str, chat_history: Optional[list]=None):
         #CRAG runs a multi-step graph; emit the final answer as a single chunk

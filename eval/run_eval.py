@@ -32,6 +32,7 @@ import os
 EVAL_K = int(os.getenv("EVAL_K", "5"))
 EVAL_CHUNK_SIZE = int(os.getenv("EVAL_CHUNK_SIZE", "1000"))
 EVAL_CHUNK_OVERLAP = int(os.getenv("EVAL_CHUNK_OVERLAP", "200"))
+_LIMIT = int(os.getenv("EVAL_LIMIT","0"))
 
 THRESHOLDS_PATH = EVAL_DIR / "thresholds.yaml"
 GOLDEN_PATH = EVAL_DIR / "golden_dataset.jsonl"
@@ -62,16 +63,36 @@ def load_golden() -> list[dict]:
     return [json.loads(ln) for ln in GOLDEN_PATH.read_text(encoding='utf-8').splitlines() if ln.strip()]
 
 
-def _load_rag() ->ConversationalRAG:
-    """Ingest the corpus once and return a ready-to-query ConversationalRAG"""
+EVAL_SESSION = "eval_corpus"  # fixed session dir, rebuilt each run (no accumulation)
+
+
+def _load_rag():
+    """Ingest the corpus into a fixed session dir and return the configured RAG engine."""
+    import shutil
+    from multi_doc_chat.utils.config_loader import load_config
+
     files = [_LocalFile(p) for p in sorted(CORPUS_DIR.glob("*"))
              if p.suffix.lower() in SUPPORTED_EXTENSIONS]
     if not files:
         raise SystemExit(f"No corpus files found in {CORPUS_DIR}")
-    ingestor = ChatIngestor(temp_base="data",faiss_base="faiss_index", use_session_dirs=True)
+
+    # Wipe the fixed eval dirs so each run rebuilds cleanly (handles chunk-size changes
+    # and avoids accumulating a new session dir per run).
+    for base in ("data", "faiss_index"):
+        shutil.rmtree(Path(base) / EVAL_SESSION, ignore_errors=True)
+
+    ingestor = ChatIngestor(temp_base="data", faiss_base="faiss_index",
+                            use_session_dirs=True, session_id=EVAL_SESSION)
     ingestor.build_retriever(files, chunk_size=EVAL_CHUNK_SIZE, chunk_overlap=EVAL_CHUNK_OVERLAP, k=EVAL_K)
-    rag = ConversationalRAG(session_id=ingestor.session_id)
-    rag.load_retriever_from_faiss(index_path=f"faiss_index/{ingestor.session_id}",k=EVAL_K)
+
+    # Respect the configured engine ("standard" | "corrective").
+    engine = (load_config().get("rag", {}) or {}).get("engine", "standard")
+    if engine == "corrective":
+        from multi_doc_chat.src.document_chat.agentic_rag import CorrectiveRAG
+        rag = CorrectiveRAG(session_id=EVAL_SESSION)
+    else:
+        rag = ConversationalRAG(session_id=EVAL_SESSION)
+    rag.load_retriever_from_faiss(index_path=f"faiss_index/{EVAL_SESSION}", k=EVAL_K)
     return rag
 
 _CORRECTNESS_PROMPT = ChatPromptTemplate.from_messages([
@@ -109,7 +130,10 @@ def _score_correctness(question: str, answer: str, ground_truth: str) -> int:
 
 def evaluate() -> dict[str, float]:
     """Run the eval, return {metric_name: mean_score}. See docs/01, Phase 4."""
-    golden = load_golden()[:3]
+    golden = load_golden()
+    if _LIMIT:
+        golden = golden[:_LIMIT]
+
     rag = _load_rag()
 
     samples: list[dict] = []
