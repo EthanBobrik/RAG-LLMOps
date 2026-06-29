@@ -1,5 +1,11 @@
 # MultiDocChat — RAG with an LLMOps toolkit
 
+### ▶ [Live demo →](https://multidocchat.onrender.com/)
+
+![alt text](image.png)
+
+*Hosted free on Render — the instance sleeps when idle, so the first load may take ~30s to wake. Upload a PDF/Word/text file, then ask it questions.*
+
 A multi-document, conversational **Retrieval-Augmented Generation (RAG)** application built
 to demonstrate production concerns, not just a demo: automated quality evaluation gated in
 CI, token streaming, hybrid retrieval with reranking, and an optional agentic
