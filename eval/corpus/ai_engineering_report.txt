@@ -1,0 +1,133 @@
+The 2025 AI Engineering Report
+==============================
+
+About this report
+-----------------
+The 2025 AI Engineering Report is an annual survey of how teams build, evaluate, and
+operate applications powered by large language models. This edition is based on responses
+from 1,200 practitioners across 600 organizations, collected between September and
+November of 2024. The report focuses on five themes: retrieval-augmented generation,
+embeddings and vector storage, agentic systems, evaluation, and production operations
+(LLMOps). All figures in this document are drawn from that survey unless stated otherwise.
+
+Executive summary
+-----------------
+Retrieval-Augmented Generation (RAG) remains the dominant pattern for grounding LLM
+applications in private or current data: 78% of surveyed teams reported running at least
+one RAG system in production. Evaluation has become the top operational concern, cited by
+64% of respondents as their single biggest challenge, overtaking cost (which fell to 41%).
+The median team reported spending 30% of its engineering effort on data preparation and
+chunking, which respondents identified as the highest-leverage lever for retrieval
+quality.
+
+What Retrieval-Augmented Generation is
+--------------------------------------
+RAG is a technique that improves an LLM's response by retrieving relevant external
+documents at query time and having the model answer using that retrieved context, rather
+than relying solely on knowledge memorized during training. The report describes RAG as
+having two phases: an offline indexing phase and an online query phase. The indexing phase
+loads documents, splits them into chunks, embeds the chunks into vectors, and stores those
+vectors in a vector database. The query phase embeds the user's question, retrieves the
+most similar chunks, inserts them into the prompt as context, and asks the model to answer.
+
+The report identifies three primary benefits of RAG: it reduces hallucination by anchoring
+answers to source material, it allows up-to-date information without retraining the model,
+and it provides traceability because answers can cite the documents they came from. The
+report contrasts RAG with fine-tuning: fine-tuning changes the model's weights and is best
+for adapting how a model responds, whereas RAG changes what information the model can
+access at answer time and is best for injecting knowledge. The two are described as
+complementary and often used together.
+
+Chunking
+--------
+Chunking is the process of splitting documents into smaller passages before embedding.
+The report recommends chunk sizes between 200 and 1,000 tokens for most question-answering
+workloads, with a chunk overlap of 10 to 20 percent to avoid losing meaning at chunk
+boundaries. Chunks that are too large add noise and dilute retrieval; chunks that are too
+small lose surrounding context. The report names the recursive character splitter as the
+most widely adopted splitting strategy, used by 58% of teams.
+
+Embeddings and vector databases
+-------------------------------
+An embedding model converts a piece of text into a vector of numbers that captures its
+meaning, so that semantically similar passages sit close together in vector space. The
+report stresses one invariant above all others: the same embedding model must be used at
+both indexing time and query time, because mixing models places the document vectors and
+the query vector in different spaces and silently breaks retrieval. The report calls this
+the single most common subtle bug in production RAG systems.
+
+A vector database stores embeddings and supports fast similarity search over them. Because
+exact nearest-neighbor search is too slow at scale, vector databases use Approximate
+Nearest Neighbor (ANN) algorithms that trade a small amount of accuracy for large speed
+gains. The most widely used ANN index in the survey is HNSW (Hierarchical Navigable Small
+World), a graph-based index. For measuring similarity between vectors, cosine similarity is
+the most common metric for text, used by 71% of teams. The most popular vector stores
+reported were FAISS for local and in-process use and managed services for larger
+deployments.
+
+Retrieval techniques
+--------------------
+The report distinguishes several retrieval strategies. Plain similarity search returns the
+k chunks closest to the query, but often returns near-duplicates. Maximal Marginal
+Relevance (MMR) addresses this by fetching a larger candidate pool (commonly 20 candidates)
+and then selecting a smaller diverse subset (commonly 5), balancing relevance against
+diversity with a tunable lambda parameter. Hybrid search combines sparse lexical retrieval
+(such as BM25) with dense vector retrieval, which the report says improves recall on
+keyword-heavy and acronym-laden queries. Reranking uses a cross-encoder to re-score
+retrieved candidates jointly with the query; the report found that adding a cross-encoder
+reranker improved retrieval precision by a median of 14% across participating teams.
+
+Large language models and context windows
+------------------------------------------
+A large language model predicts the next token in a sequence and is built on the
+Transformer architecture, whose key innovation is the attention mechanism. The context
+window is the maximum number of tokens a model can consider at once, including both the
+prompt and the response. The report warns against the "stuff everything in the context"
+anti-pattern: even with large context windows, retrieval quality matters because models
+exhibit a "lost in the middle" effect, attending less reliably to information placed in the
+center of a long context. Temperature is described as the setting that controls randomness
+in generation, with lower values producing more focused and deterministic output.
+
+Agentic systems and agentic RAG
+-------------------------------
+An agentic system pursues a goal autonomously by planning steps, calling tools, observing
+results, and adjusting until the goal is met, following a perceive-plan-act loop. Agentic
+RAG, according to the report, lets an agent decide when and what to retrieve, possibly over
+multiple rounds, rather than retrieving exactly once. The report highlights corrective RAG
+(CRAG) as a notable pattern in which the system grades whether retrieved documents are
+relevant, rewrites the query and re-retrieves when they are not, and checks the generated
+answer against the retrieved context before returning it. Adoption of agentic patterns grew
+from 19% of teams in the prior year's report to 44% in this edition.
+
+Evaluation
+----------
+The report devotes its largest section to evaluation, which it frames as the defining
+discipline of mature LLM engineering. It recommends a golden dataset of question and
+reference-answer pairs as the foundation of any eval suite. Four metrics are described as
+core to RAG evaluation: faithfulness measures whether the answer is grounded in the
+retrieved context, answer relevancy measures whether the answer addresses the question,
+context precision measures whether the retrieved context is on topic, and context recall
+measures whether the retrieved context covers the reference answer. The report distinguishes
+retrieval metrics from generation metrics and recommends tracking both, because a faithful
+answer built on poor retrieval still fails the user. It also recommends the "LLM-as-a-judge"
+approach, in which a separate model scores outputs, while cautioning that judges should be
+validated against human labels before being trusted.
+
+LLMOps and production operations
+--------------------------------
+LLMOps is defined as the set of practices for taking LLM applications from prototype to
+reliable production, adapting MLOps and DevOps to the non-deterministic nature of LLM
+output. The report's top recommendation is to gate deployments on automated evaluation:
+teams that ran evals in continuous integration reported 2.3 times fewer quality-related
+incidents than those that did not. Other recommended practices include versioning prompts
+as artifacts, tracing every request end to end, monitoring token usage and latency, and
+adding guardrails against prompt injection. Semantic caching, which reuses responses for
+semantically similar queries, was reported to cut average inference cost by 22% among teams
+that adopted it.
+
+Key recommendations
+-------------------
+The report closes with five recommendations: invest in data preparation and chunking
+first; keep the embedding model consistent across indexing and querying; add reranking
+before reaching for a larger model; build a golden dataset and gate CI on evaluation; and
+instrument production with tracing and cost monitoring from day one.

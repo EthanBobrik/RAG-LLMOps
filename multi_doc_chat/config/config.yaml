@@ -1,0 +1,41 @@
+embedding_model:
+  provider: "fastembed"               # local, on-device (onnx) — no API key, no quota
+  model_name: "BAAI/bge-small-en-v1.5"
+
+retriever:
+  top_k: 10
+  search_type: "mmr"  # Options: "similarity", "mmr", "similarity_score_threshold"
+  # MMR (Maximal Marginal Relevance) parameters for diverse results
+  fetch_k: 20  # Number of documents to fetch before MMR re-ranking (should be > top_k)
+  lambda_mult: 0.5  # Diversity vs relevance (0=max diversity, 1=max relevance)
+
+llm:
+  groq:
+    provider: "groq"
+    model_name: "openai/gpt-oss-20b"
+    temperature: 0
+    max_output_tokens: 2048
+
+  google:
+    provider: "google"
+    model_name: "gemini-2.5-flash"
+    temperature: 0
+    max_output_tokens: 2048
+
+# --- PLACEHOLDER config (not yet read by code) ---
+
+# Guide 3 — hybrid retrieval + reranking (docs/03_hybrid_retrieval_rerank.md)
+hybrid:
+  enabled: true          
+  dense_weight: 0.5
+  sparse_weight: 0.5
+  fetch_k: 20
+reranker:
+  enabled: true         
+  model_name: "Xenova/ms-marco-MiniLM-L-6-v2"
+  top_n: 5
+
+# Guide 4 — agentic corrective-RAG (docs/04_agentic_corrective_rag.md)
+rag:
+  engine: "standard"      # "standard" | "corrective"
+  max_retries: 2

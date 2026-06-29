@@ -1,0 +1,7 @@
+# Quality gates for eval/run_eval.py. CI fails (exit 1) if any metric < its threshold.
+# Thresholds should ratchet UP over time, never down without justification.
+correctness: 0.80          # mean LLM-as-judge correctness (0..1)
+faithfulness: 0.85         # RAGAS: answer grounded in retrieved context
+answer_relevancy: 0.80     # RAGAS: answer addresses the question
+context_precision: 0.70    # RAGAS: retrieved context is on-topic
+context_recall: 0.70       # RAGAS: retrieved context covers the ground truth
