@@ -7,7 +7,9 @@ aiohttp==3.14.1
 aiosignal==1.4.0
     # via aiohttp
 annotated-doc==0.0.4
-    # via fastapi
+    # via
+    #   fastapi
+    #   typer
 annotated-types==0.7.0
     # via pydantic
 anyio==4.14.1
@@ -36,14 +38,21 @@ cffi==2.0.0 ; implementation_name == 'pypy' or platform_python_implementation !=
 charset-normalizer==3.4.7
     # via requests
 click==8.4.2
-    # via uvicorn
+    # via
+    #   huggingface-hub
+    #   typer
+    #   uvicorn
 colorama==0.4.6 ; sys_platform == 'win32'
     # via
     #   click
     #   ipython
+    #   loguru
+    #   pytest
     #   tqdm
 comm==0.2.3
     # via ipykernel
+coverage==7.14.3
+    # via pytest-cov
 cryptography==49.0.0
     # via google-auth
 debugpy==1.8.21
@@ -64,6 +73,10 @@ faiss-cpu==1.14.3
     # via rag-llmops
 fastapi==0.138.0
     # via rag-llmops
+fastembed==0.8.0
+    # via rag-llmops
+filelock==3.29.4
+    # via huggingface-hub
 filetype==1.2.0
     # via langchain-google-genai
 flatbuffers==25.12.19
@@ -72,6 +85,8 @@ frozenlist==1.8.0
     # via
     #   aiohttp
     #   aiosignal
+fsspec==2026.6.0
+    # via huggingface-hub
 google-auth==2.55.0
     # via google-genai
 google-genai==2.10.0
@@ -84,23 +99,32 @@ h11==0.16.0
     # via
     #   httpcore
     #   uvicorn
+hf-xet==1.5.1 ; platform_machine == 'AMD64' or platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'arm64' or platform_machine == 'x86_64'
+    # via huggingface-hub
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
     # via
     #   google-genai
     #   groq
+    #   huggingface-hub
     #   langgraph-sdk
     #   langsmith
     #   openai
 httpx-sse==0.4.3
     # via langchain-community
+huggingface-hub==1.21.0
+    # via
+    #   fastembed
+    #   tokenizers
 idna==3.18
     # via
     #   anyio
     #   httpx
     #   requests
     #   yarl
+iniconfig==2.3.0
+    # via pytest
 ipykernel==7.3.0
     # via rag-llmops
 ipython==9.14.1
@@ -111,7 +135,7 @@ jedi==0.20.0
     # via ipython
 jinja2==3.1.6
     # via rag-llmops
-jiter==0.15.0
+jiter==0.14.0
     # via openai
 jsonpatch==1.33
     # via langchain-core
@@ -158,7 +182,9 @@ langchain-protocol==0.0.18
 langchain-text-splitters==1.1.2
     # via langchain-classic
 langgraph==1.2.6
-    # via langchain
+    # via
+    #   langchain
+    #   rag-llmops
 langgraph-checkpoint==4.1.1
     # via
     #   langgraph
@@ -173,12 +199,20 @@ langsmith==0.9.1
     #   langchain-community
     #   langchain-core
     #   rag-llmops
+loguru==0.7.3
+    # via fastembed
+markdown-it-py==4.2.0
+    # via rich
 markupsafe==3.0.3
     # via jinja2
 matplotlib-inline==0.2.2
     # via
     #   ipykernel
     #   ipython
+mdurl==0.1.2
+    # via markdown-it-py
+mmh3==5.2.1
+    # via fastembed
 multidict==6.7.1
     # via
     #   aiohttp
@@ -188,14 +222,18 @@ nest-asyncio2==1.7.2
 numpy==2.5.0
     # via
     #   faiss-cpu
+    #   fastembed
     #   langchain-community
     #   onnxruntime
     #   opencv-python
     #   pandas
+    #   rank-bm25
     #   rapidocr-onnxruntime
     #   shapely
 onnxruntime==1.27.0
-    # via rapidocr-onnxruntime
+    # via
+    #   fastembed
+    #   rapidocr-onnxruntime
 openai==2.44.0
     # via
     #   langchain-openai
@@ -211,10 +249,12 @@ ormsgpack==1.12.2
 packaging==26.2
     # via
     #   faiss-cpu
+    #   huggingface-hub
     #   ipykernel
     #   langchain-core
     #   langsmith
     #   onnxruntime
+    #   pytest
 pandas==3.0.3
     # via rag-llmops
 parso==0.8.7
@@ -222,9 +262,15 @@ parso==0.8.7
 pexpect==4.9.0 ; sys_platform != 'emscripten' and sys_platform != 'win32'
     # via ipython
 pillow==12.2.0
-    # via rapidocr-onnxruntime
+    # via
+    #   fastembed
+    #   rapidocr-onnxruntime
 platformdirs==4.10.0
     # via jupyter-core
+pluggy==1.6.0
+    # via
+    #   pytest
+    #   pytest-cov
 prompt-toolkit==3.0.52
     # via ipython
 propcache==0.5.2
@@ -241,6 +287,8 @@ ptyprocess==0.7.0 ; sys_platform != 'emscripten' and sys_platform != 'win32'
     # via pexpect
 pure-eval==0.2.3
     # via stack-data
+py-rust-stemmers==0.1.8
+    # via fastembed
 pyasn1==0.6.3
     # via pyasn1-modules
 pyasn1-modules==0.4.2
@@ -270,6 +318,11 @@ pygments==2.20.0
     # via
     #   ipython
     #   ipython-pygments-lexers
+    #   pytest
+    #   rich
+pytest==9.1.1
+    # via pytest-cov
+pytest-cov==7.1.0
 python-dateutil==2.9.0.post0
     # via
     #   jupyter-client
@@ -282,6 +335,7 @@ python-multipart==0.0.32
     # via rag-llmops
 pyyaml==6.0.3
     # via
+    #   huggingface-hub
     #   langchain-classic
     #   langchain-community
     #   langchain-core
@@ -290,12 +344,17 @@ pyzmq==27.1.0
     # via
     #   ipykernel
     #   jupyter-client
+rank-bm25==0.2.2
+    # via rag-llmops
 rapidocr-onnxruntime==1.4.4
+    # via rag-llmops
+redis==8.0.1
     # via rag-llmops
 regex==2026.5.9
     # via tiktoken
 requests==2.34.2
     # via
+    #   fastembed
     #   google-auth
     #   google-genai
     #   langchain-classic
@@ -305,8 +364,12 @@ requests==2.34.2
     #   tiktoken
 requests-toolbelt==1.0.0
     # via langsmith
+rich==15.0.0
+    # via typer
 shapely==2.1.2
     # via rapidocr-onnxruntime
+shellingham==1.5.4
+    # via typer
 six==1.17.0
     # via
     #   python-dateutil
@@ -336,12 +399,16 @@ tiktoken==0.13.0
     # via
     #   langchain-openai
     #   rag-llmops
+tokenizers==0.23.1
+    # via fastembed
 tornado==6.5.7
     # via
     #   ipykernel
     #   jupyter-client
 tqdm==4.68.3
     # via
+    #   fastembed
+    #   huggingface-hub
     #   openai
     #   rapidocr-onnxruntime
 traitlets==5.15.1
@@ -351,6 +418,8 @@ traitlets==5.15.1
     #   jupyter-client
     #   jupyter-core
     #   matplotlib-inline
+typer==0.25.1
+    # via huggingface-hub
 typing-extensions==4.15.0
     # via
     #   aiohttp
@@ -359,6 +428,7 @@ typing-extensions==4.15.0
     #   fastapi
     #   google-genai
     #   groq
+    #   huggingface-hub
     #   jupyter-client
     #   langchain-core
     #   langchain-protocol
@@ -391,6 +461,8 @@ websockets==15.0.1
     #   google-genai
     #   langgraph-sdk
     #   langsmith
+win32-setctime==1.2.0 ; sys_platform == 'win32'
+    # via loguru
 xxhash==3.7.1
     # via
     #   langgraph
