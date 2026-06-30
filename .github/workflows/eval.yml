@@ -1,0 +1,38 @@
+name: RAG eval gate
+
+# Manual only — this makes real LLM calls, so it does NOT run on every push.
+# Requires a GROQ_API_KEY repo secret:
+#   Settings → Secrets and variables → Actions → New repository secret.
+# The job fails if any metric falls below its threshold in eval/thresholds.yaml.
+on:
+  workflow_dispatch:
+
+jobs:
+  eval:
+    name: Quality gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv + Python 3.12
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run eval gate
+        env:
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/multi_doc_chat
+          LLM_PROVIDER: groq
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: uv run python eval/run_eval.py
+
+      - name: Upload eval report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: eval/report.json

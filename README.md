@@ -1,5 +1,8 @@
 # MultiDocChat — RAG with an LLMOps toolkit
 
+[![CI](https://github.com/EthanBobrik/RAG-LLMOps/actions/workflows/ci.yml/badge.svg)](https://github.com/EthanBobrik/RAG-LLMOps/actions/workflows/ci.yml)
+&nbsp;[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
+
 ### ▶ [Live demo →](https://multidocchat.onrender.com/)
 
 ![alt text](image.png)

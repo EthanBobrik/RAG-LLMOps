@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv + Python 3.12
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run test suite
+        env:
+          # tests stub all models — no real API keys or network needed
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/multi_doc_chat
+          LLM_PROVIDER: groq
+          GROQ_API_KEY: dummy
+        run: uv run pytest tests/ -q
