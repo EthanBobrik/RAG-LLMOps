@@ -42,11 +42,20 @@ def _parse_metrics_json(text:str) ->dict:
 _judge = None  # built once, reused across every metric call
 
 
-def _get_judge():
+def get_judge():
+    """Dedicated judge LLM — a stronger model *distinct* from the app's generation LLM,
+    so the judge never grades its own outputs (reduces self-bias). Override with
+    EVAL_JUDGE_MODEL (default: Groq llama-3.3-70b-versatile)."""
     global _judge
     if _judge is None:
-        from multi_doc_chat.utils.model_loader import ModelLoader
-        _judge = ModelLoader().load_llm()  # reads model from config.yaml (single source of truth)
+        import os
+        from langchain_groq import ChatGroq
+        _judge = ChatGroq(
+            model=os.getenv("EVAL_JUDGE_MODEL", "llama-3.3-70b-versatile"),
+            temperature=0,
+            api_key=os.environ.get("GROQ_API_KEY"),
+            max_retries=int(os.getenv("GROQ_MAX_RETRIES", "8")),
+        )
     return _judge
 
 def _format_contexts(contexts: List[str]) -> str:
@@ -73,7 +82,7 @@ def _score_sample(s: EvalSample) -> dict:
         f"CONTEXT:\n{_format_contexts(s['contexts'])}"
     )
     try:
-        resp = _get_judge().invoke([SystemMessage(content=system), HumanMessage(content=human)])
+        resp = get_judge().invoke([SystemMessage(content=system), HumanMessage(content=human)])
         return _parse_metrics_json(getattr(resp, "content", str(resp)))
     except Exception:
         return {}

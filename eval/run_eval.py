@@ -40,7 +40,7 @@ CORPUS_DIR = EVAL_DIR / "corpus"
 REPORT_PATH = EVAL_DIR / "report.json"
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
-from metrics import compute_ragas
+from metrics import compute_ragas, get_judge
 
 from multi_doc_chat.src.document_ingestion.data_ingestion import ChatIngestor
 from multi_doc_chat.src.document_chat.retrieval import ConversationalRAG
@@ -106,19 +106,9 @@ _CORRECTNESS_PROMPT = ChatPromptTemplate.from_messages([
     "Respond with exactly one word: CORRECT or INCORRECT.") 
 ])
 
-_judge = None  # built once, reused across all questions
-
-
-def _get_judge():
-    global _judge
-    if _judge is None:
-        from multi_doc_chat.utils.model_loader import ModelLoader
-        _judge = ModelLoader().load_llm()  # follows LLM_PROVIDER (groq) from config
-    return _judge
-    
-
 def _score_correctness(question: str, answer: str, ground_truth: str) -> int:
-    chain = _CORRECTNESS_PROMPT | _get_judge()
+    # shared judge from metrics.py — a stronger model distinct from the app's LLM
+    chain = _CORRECTNESS_PROMPT | get_judge()
     try:
         verdict = chain.invoke(
             {"question": question, "reference": ground_truth, "actual": answer}
