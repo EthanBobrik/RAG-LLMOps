@@ -28,5 +28,5 @@ jobs:
           # tests stub all models — no real API keys or network needed
           PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/multi_doc_chat
           LLM_PROVIDER: groq
-          GROQ_API_KEY: dummy
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: uv run pytest tests/ -q
